@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deteksi Kerusakan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Deteksi Kerusakan Final Drive ADT A40G Volvo</h1>
+        <form id="detectionForm">
+            <div>
+                <h3>Pilih Gejala:</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G1" name="gejala" value="G1">
+                    <label for="G1">Oli berwarna hitam di sight glass</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G2" name="gejala" value="G2">
+                    <label for="G2">Pengereman kurang pakem khususnya retarder</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G3" name="gejala" value="G3">
+                    <label for="G3">Warning heat temperature</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G4" name="gejala" value="G4">
+                    <label for="G4">Noise pada saat pengereman</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G5" name="gejala" value="G5">
+                    <label for="G5">Warna oli berubah menjadi susu di sight glass</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G6" name="gejala" value="G6">
+                    <label for="G6">Ada uapan oil pada brake cooling tank</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G7" name="gejala" value="G7">
+                    <label for="G7">Oli axle meluap pada breather</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="G8" name="gejala" value="G8">
+                    <label for="G8">Ada tetesan oli di bagian luar hub</label>
+                </div>
+            </div>
+            <button type="button" onclick="detectKerusakan()">Deteksi Kerusakan</button>
+        </form>
+        <div id="results">
+            <h3>Gejala yang Terdeteksi:</h3>
+            <ul id="gejalaTerdeteksi"></ul>
+            <h3>Kemungkinan Kerusakan:</h3>
+            <ul id="hasilDeteksi"></ul>
+            <div id="warning"></div>
+        </div>
+    </div>
+
+    <script>
+        const gejala = {
+            "G1": "Oli berwarna hitam di sight glass",
+            "G2": "Pengereman kurang pakem khususnya retarder",
+            "G3": "Warning heat temperature",
+            "G4": "Noise pada saat pengereman",
+            "G5": "Warna oli berubah menjadi susu di sight glass",
+            "G6": "Ada uapan oil pada brake cooling tank",
+            "G7": "Oli axle meluap pada breather",
+            "G8": "Ada tetesan oli di bagian luar hub"
+        };
+
+        const aturan = [
+            {
+                "gejala": ["G1", "G2", "G3"],
+                "kerusakan": "Stator bermasalah",
+                "keterangan": "Berhati - hati dalam pengoperasian dan kurang penggunaan service brake perbanyak penggunaan retarder."
+            },
+            {
+                "gejala": ["G1", "G2", "G3"],
+                "kerusakan": "Disc bermasalah",
+                "keterangan": "Berhati - hati dalam pengoperasian dan kurang penggunaan service brake perbanyak penggunaan retarder."
+            },
+            {
+                "gejala": ["G1", "G3"],
+                "kerusakan": "Heat exchanger bermasalah",
+                "keterangan": "Berhati - hati dalam pengoperasian dan kurang penggunaan service brake perbanyak penggunaan retarder."
+            },
+            {
+                "gejala": ["G4", "G5"],
+                "kerusakan": "Oli brake mix water",
+                "keterangan": "Pastikan tutup tanki tertutup rapat dan pastikan seal penutup tanki dalam keadaan masih bagus."
+            },
+            {
+                "gejala": ["G6", "G7"],
+                "kerusakan": "Kebocoran internal",
+                "keterangan": "Berhati - hati dalam pengoperasian, hubungi mekanik terdekat dan pastikan seal terpasang dengan benar pada saat perbaikan/perakitan."
+            },
+            {
+                "gejala": ["G8"],
+                "kerusakan": "Kebocoran pada hub",
+                "keterangan": "Berhati - hati dalam pengoperasian, hubungi mekanik terdekat dan pastikan seal terpasang dengan benar pada saat perbaikan/perakitan."
+            }
+        ];
+
+        function detectKerusakan() {
+            const form = document.getElementById('detectionForm');
+            const inputGejala = Array.from(form.elements['gejala'])
+                .filter(input => input.checked)
+                .map(input => input.value);
+
+            const kemungkinanKerusakan = aturan
+                .filter(rule => rule.gejala.every(g => inputGejala.includes(g)))
+                .map(rule => {
+                    return {
+                        kerusakan: rule.kerusakan,
+                        keterangan: rule.keterangan
+                    };
+                });
+
+            const gejalaTerdeteksi = inputGejala.map(g => gejala[g]);
+
+            document.getElementById('gejalaTerdeteksi').innerHTML = gejalaTerdeteksi
+                .map(g => `<li>${g}</li>`)
+                .join('');
+
+            document.getElementById('hasilDeteksi').innerHTML = kemungkinanKerusakan.length > 0
+                ? kemungkinanKerusakan.map(k => `<li>${k.kerusakan}</li>`).join('')
+                : '<li>Tidak ada kerusakan yang terdeteksi</li>';
+
+            const uniqueWarnings = Array.from(new Set(kemungkinanKerusakan.map(k => k.keterangan)));
+
+            const warningMessage = uniqueWarnings.length > 0
+                ? uniqueWarnings.join('<br>')
+                : '';
+
+            typeWriterEffect(warningMessage);
+        }
+
+        function typeWriterEffect(text) {
+            const warningElement = document.getElementById('warning');
+            warningElement.innerHTML = '';
+            let i = 0;
+            function typeWriter() {
+                if (i < text.length) {
+                    warningElement.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 50);
+                }
+            }
+            typeWriter();
+        }
+    </script>
+</body>
+</html>
